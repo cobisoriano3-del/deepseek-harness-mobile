@@ -50,10 +50,10 @@ public class SetupActivity extends Activity implements BootstrapInstaller.Listen
 
         // 顶部标题区
         LinearLayout header = Ui.card(this);
-        TextView title = Ui.title(this, "初始化 Ubuntu 容器");
+        TextView title = Ui.title(this, "Set up Ubuntu container");
         header.addView(title);
         TextView hint = Ui.hint(this,
-                "首次启动需要联网下载约 400MB（Ubuntu + 编译工具链 + Node.js + DeepSeek Harness），请保持网络畅通。");
+                "The first launch downloads about 400 MB (Ubuntu, build tools, Node.js, and DeepSeek Harness). Please keep your internet connection active.");
         LinearLayout.LayoutParams hlp = Ui.matchWrap();
         hlp.topMargin = Ui.dp(this, 8);
         header.addView(hint, hlp);
@@ -95,7 +95,7 @@ public class SetupActivity extends Activity implements BootstrapInstaller.Listen
         logView.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, orr, ob) ->
                 scroll.post(() -> scroll.fullScroll(View.FOCUS_DOWN)));
 
-        actionBtn = Ui.primaryButton(this, "取消");
+        actionBtn = Ui.primaryButton(this, "Cancel");
         actionBtn.setOnClickListener(v -> {
             if (done) {
                 startActivity(new Intent(this, MainActivity.class));
@@ -156,18 +156,18 @@ public class SetupActivity extends Activity implements BootstrapInstaller.Listen
         handler.post(() -> {
             done = true;
             if (success) {
-                stageText.setText("安装完成 ✓");
+                stageText.setText("Installation complete ✓");
                 stageText.setTextColor(Ui.PRIMARY);
-                actionBtn.setText("开始使用");
+                actionBtn.setText("Get started");
             } else {
-                stageText.setText("安装失败：" + error);
+                stageText.setText("Installation failed: " + error);
                 stageText.setTextColor(0xFFE54545);
-                actionBtn.setText("重试");
+                actionBtn.setText("Retry");
                 actionBtn.setOnClickListener(v -> {
                     logView.setText("");
                     progress.setProgress(0);
                     stageText.setTextColor(Ui.PRIMARY);
-                    actionBtn.setText("取消");
+                    actionBtn.setText("Cancel");
                     actionBtn.setOnClickListener(x -> finish());
                     startInstall();
                 });
