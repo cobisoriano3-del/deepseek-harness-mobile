@@ -146,7 +146,7 @@ public class SettingsActivity extends Activity {
             toast("Password copied.");
         });
         sshCard.addView(Ui.divider(this));
-        addRow(sshCard, "SSH port", String.valueOf(prefs.getSshPort()) + "(change this if it conflicts with Termux)",
+        addRow(sshCard, "SSH port", String.valueOf(prefs.getSshPort()) + " (change this if it conflicts with Termux)",
                 v -> editText("SSH port", String.valueOf(prefs.getSshPort()), t -> {
                     try {
                         int p = Integer.parseInt(t.trim());
