@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - feature/english-language
+  pull_request:
+    branches:
+      - master
 
 permissions:
   contents: read
