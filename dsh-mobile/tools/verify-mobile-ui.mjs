@@ -100,7 +100,7 @@ function pageHtml(css) {
       <div class="_sidebarCol_test">
         <div class="_sidebarRoot_test" id="sidebar-root">
           <div class="label">新会话</div><div class="label">插件</div><div class="label">工作区</div>
-          <button class="_toggle_test" id="sidebar-toggle" aria-label="Collapse sidebar">toggle</button>
+          <button class="_toggle_test" id="sidebar-toggle" aria-label="Open sidebar">toggle</button>
         </div>
       </div>
       <div class="_centerCol_test" id="center-col">
@@ -120,7 +120,8 @@ const SIDEBAR_TOGGLE_SCRIPT = `
   document.getElementById('sidebar-toggle').addEventListener('click', function () {
     window.__toggleClicks.push(performance.now());
     var root = document.getElementById('sidebar-root');
-    root.classList.toggle('_collapsed_test');
+    var collapsed = root.classList.toggle('_collapsed_test');
+    this.setAttribute('aria-label', collapsed ? 'Open sidebar' : 'Collapse sidebar');
   });
 `
 
