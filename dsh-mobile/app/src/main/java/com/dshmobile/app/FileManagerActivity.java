@@ -50,7 +50,7 @@ public class FileManagerActivity extends Activity {
         super.onCreate(savedInstanceState);
         rootfs = ProotRunner.rootfsDir(this);
         if (!rootfs.isDirectory()) {
-            Toast.makeText(this, "容器尚未安装，请先完成初始化", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "The container is not installed. Please complete setup first.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -70,7 +70,7 @@ public class FileManagerActivity extends Activity {
         int bp = Ui.dp(this, 12);
         bar.setPadding(bp, Ui.dp(this, 10), bp, Ui.dp(this, 4));
         bar.setBackgroundColor(Ui.bg(this));
-        TextView title = Ui.title(this, "文件管理器");
+        TextView title = Ui.title(this, "File manager");
         title.setTextSize(18);
         bar.addView(title);
         pathView = Ui.hint(this, "");
@@ -109,17 +109,17 @@ public class FileManagerActivity extends Activity {
         bottom.setPadding(bp, bp, bp, bp);
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        android.widget.Button importBtn = Ui.primaryButton(this, "导入到当前目录");
+        android.widget.Button importBtn = Ui.primaryButton(this, "Import to current folder");
         importBtn.setOnClickListener(v -> pickImport());
         btnRow.addView(importBtn, new LinearLayout.LayoutParams(0, Ui.dp(this, 48), 1));
-        android.widget.Button mkdirBtn = Ui.outlineButton(this, "新建文件夹");
+        android.widget.Button mkdirBtn = Ui.outlineButton(this, "New folder");
         LinearLayout.LayoutParams mlp = new LinearLayout.LayoutParams(0, Ui.dp(this, 48), 1);
         mlp.leftMargin = Ui.dp(this, 12);
         mkdirBtn.setLayoutParams(mlp);
         mkdirBtn.setOnClickListener(v -> mkdirDialog());
         btnRow.addView(mkdirBtn);
         bottom.addView(btnRow);
-        TextView hint = Ui.hint(this, "点文件：导出到 /mnt/shared（/sdcard/dsh-shared）；长按：删除");
+        TextView hint = Ui.hint(this, "Tap a file to export it to /mnt/shared (/sdcard/dsh-shared). Long-press to delete.");
         hint.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams hlp = Ui.matchWrap();
         hlp.topMargin = Ui.dp(this, 8);
@@ -143,7 +143,7 @@ public class FileManagerActivity extends Activity {
         adapter.clear();
         if (!current.equals(rootfs)) {
             rows.add(null);
-            adapter.add("..  （返回上级）");
+            adapter.add("..  (Go up)");
         }
         File[] kids = current.listFiles();
         if (kids != null) {
@@ -181,7 +181,7 @@ public class FileManagerActivity extends Activity {
         }
         new AlertDialog.Builder(this)
                 .setTitle(f.getName())
-                .setItems(new String[]{"导出到 /mnt/shared", "删除"}, (d, which) -> {
+                .setItems(new String[]{"Export to /mnt/shared", "Delete"}, (d, which) -> {
                     if (which == 0) exportFile(f);
                     else confirmDelete(f);
                 })
@@ -196,14 +196,14 @@ public class FileManagerActivity extends Activity {
 
     private void confirmDelete(File f) {
         new AlertDialog.Builder(this)
-                .setTitle("删除")
-                .setMessage("确定删除 " + containerPath(f)
-                        + (f.isDirectory() ? "（含全部内容）" : "") + " ？")
-                .setPositiveButton("删除", (d, w) -> {
+                .setTitle("Delete")
+                .setMessage("Delete " + containerPath(f)
+                        + (f.isDirectory() ? "(including all contents)" : "") + " ？")
+                .setPositiveButton("Delete", (d, w) -> {
                     BootstrapInstaller.deleteRecursively(f);
                     refresh();
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 
@@ -213,9 +213,9 @@ public class FileManagerActivity extends Activity {
         File dest = uniqueName(destDir, f.getName());
         try {
             copyFile(f, dest);
-            Toast.makeText(this, "已导出到 " + dest.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Exported to " + dest.getAbsolutePath(), Toast.LENGTH_LONG).show();
         } catch (IOException e) {
-            Toast.makeText(this, "导出失败：" + e.getMessage()
+            Toast.makeText(this, "Export failed: " + e.getMessage()
                     + "\n可到设置开启「所有文件访问权限」后重试", Toast.LENGTH_LONG).show();
         }
     }
@@ -276,7 +276,7 @@ public class FileManagerActivity extends Activity {
             }
         }
         refresh();
-        Toast.makeText(this, "导入完成：" + ok + " 个" + (fail > 0 ? "，失败 " + fail + " 个" : ""),
+        Toast.makeText(this, "Import complete: " + ok + " item(s)" + (fail > 0 ? ", failed: " + fail + " item(s)" : ""),
                 Toast.LENGTH_SHORT).show();
     }
 
@@ -285,7 +285,7 @@ public class FileManagerActivity extends Activity {
         File dest = uniqueName(current, name);
         try (InputStream in = getContentResolver().openInputStream(uri);
              OutputStream out = new FileOutputStream(dest)) {
-            if (in == null) throw new IOException("无法读取所选文件");
+            if (in == null) throw new IOException("Could not read the selected file.");
             byte[] buf = new byte[64 * 1024];
             int n;
             while ((n = in.read(buf)) != -1) {
@@ -309,23 +309,23 @@ public class FileManagerActivity extends Activity {
 
     private void mkdirDialog() {
         EditText et = new EditText(this);
-        et.setHint("文件夹名");
+        et.setHint("Folder name");
         et.setSingleLine(true);
         int p = Ui.dp(this, 16);
         et.setPadding(p, p / 2, p, p / 2);
         new AlertDialog.Builder(this)
-                .setTitle("新建文件夹")
+                .setTitle("New folder")
                 .setView(et)
-                .setPositiveButton("创建", (d, w) -> {
+                .setPositiveButton("Create", (d, w) -> {
                     String name = et.getText().toString().trim().replace("/", "");
                     if (name.isEmpty()) return;
                     File f = new File(current, name);
                     if (f.exists() || !f.mkdirs()) {
-                        Toast.makeText(this, "创建失败（已存在或无权限）", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Could not create the folder (it may already exist or permission may be missing).", Toast.LENGTH_SHORT).show();
                     }
                     refresh();
                 })
-                .setNegativeButton("取消", null)
+                .setNegativeButton("Cancel", null)
                 .show();
     }
 }
