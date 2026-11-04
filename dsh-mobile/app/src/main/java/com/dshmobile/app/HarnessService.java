@@ -152,7 +152,7 @@ public class HarnessService extends Service {
                     updateNotification("The container exited repeatedly and was stopped. See the logs for details.");
                     break;
                 }
-                updateNotification("Container exited (" + code + ")，" + 3 + " seconds until restart…");
+                updateNotification("Container exited (" + code + "), " + 3 + " seconds until restart…");
                 Thread.sleep(3000);
             } catch (IOException e) {
                 running = false;
