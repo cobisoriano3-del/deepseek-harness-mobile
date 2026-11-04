@@ -126,18 +126,18 @@ public class MainActivity extends Activity {
         String body = notes == null ? "" : notes.trim();
         if (body.length() > 500) body = body.substring(0, 500) + "…";
         new android.app.AlertDialog.Builder(this)
-                .setTitle("发现新版本 " + tag)
-                .setMessage(body.isEmpty() ? "当前 v" + currentVersion() + "，可更新到 " + tag + "。" : body)
-                .setPositiveButton("立即更新", (d, w) -> {
+                .setTitle("Update available: " + tag)
+                .setMessage(body.isEmpty() ? "Current version: v" + currentVersion() + ". Update to " + tag + "。" : body)
+                .setPositiveButton("Update now", (d, w) -> {
                     try {
                         // 固定名资产直链，浏览器下载后用户手动安装
                         startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,
                                 android.net.Uri.parse("https://github.com/Ajwyunsx/deepseek-harness-mobile/releases/latest/download/dsh-mobile.apk")));
                     } catch (Exception e) {
-                        android.widget.Toast.makeText(this, "无法打开下载链接", android.widget.Toast.LENGTH_SHORT).show();
+                        android.widget.Toast.makeText(this, "Could not open the download link.", android.widget.Toast.LENGTH_SHORT).show();
                     }
                 })
-                .setNegativeButton("稍后", null)
+                .setNegativeButton("Later", null)
                 .show();
     }
 
@@ -182,8 +182,8 @@ public class MainActivity extends Activity {
             int major = Integer.parseInt(dot > 0 ? v.substring(0, dot) : v);
             if (major < 116) {
                 android.widget.Toast.makeText(this,
-                        "浏览器内核过旧（" + v + "），dsh 界面可能报错或闪退，"
-                                + "请更新 Android System WebView 或 Chrome",
+                        "Your WebView is outdated (" + v + "). The DSH interface may fail or crash. "
+                                + "Please update Android System WebView or Chrome.",
                         android.widget.Toast.LENGTH_LONG).show();
             }
         } catch (Exception ignored) {
@@ -391,7 +391,7 @@ public class MainActivity extends Activity {
         plp.topMargin = Ui.dp(this, 32);
         box.addView(pb, plp);
 
-        splashStatus = Ui.hint(this, "正在启动容器…");
+        splashStatus = Ui.hint(this, "Starting container…");
         splashStatus.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams stlp = Ui.matchWrap();
         stlp.topMargin = Ui.dp(this, 16);
@@ -404,13 +404,13 @@ public class MainActivity extends Activity {
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         blp.topMargin = Ui.dp(this, 40);
 
-        Button settings = Ui.outlineButton(this, "设置");
+        Button settings = Ui.outlineButton(this, "Settings");
         settings.setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
         btns.addView(settings);
 
         // 启动失败时也能进终端排查容器（Web 服务起不来时尤其有用）
-        Button term = Ui.outlineButton(this, "终端");
+        Button term = Ui.outlineButton(this, "Terminal");
         LinearLayout.LayoutParams tlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 48));
         tlp.leftMargin = Ui.dp(this, 16);
@@ -419,7 +419,7 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(this, TerminalActivity.class)));
         btns.addView(term);
 
-        Button reinstall = Ui.primaryButton(this, "重新安装");
+        Button reinstall = Ui.primaryButton(this, "Reinstall");
         LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 48));
         rlp.leftMargin = Ui.dp(this, 16);
@@ -451,8 +451,8 @@ public class MainActivity extends Activity {
                 final long left = (deadline - System.currentTimeMillis()) / 1000;
                 handler.post(() -> splashStatus.setText(
                         HarnessService.isRunning()
-                                ? "容器已启动，等待 Web 服务就绪… (" + left + "s)"
-                                : "正在启动容器… (" + left + "s)"));
+                                ? "Container started. Waiting for the web service… (" + left + "s)"
+                                : "Starting container… (" + left + "s)"));
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
@@ -463,12 +463,12 @@ public class MainActivity extends Activity {
             handler.post(() -> {
                 if (isFinishing()) return;
                 if (ok) {
-                    splashStatus.setText("正在加载界面…");
+                    splashStatus.setText("Loading interface…");
                     // 认证 cookie 由 CookieMinter 直接从容器内持久签名密钥自签，
                     // 不依赖抓取 dsh web 的 stdout；loadMainUrl 内部会等密钥就绪。
                     loadMainUrl(authenticatedUrl());
                 } else {
-                    splashStatus.setText("等待超时。请到设置查看日志，或点“重新安装”。");
+                    splashStatus.setText("Timed out. Check the logs in Settings or tap “Reinstall”.");
                 }
             });
         }, "dsh-port-poll").start();
@@ -679,10 +679,10 @@ public class MainActivity extends Activity {
         handler.post(() -> {
             if (isFinishing()) return;
             if (loadAttempts >= 15) {
-                showSplash("界面加载失败。请到设置查看日志，或点“重新安装”。");
+                showSplash("The interface failed to load. Check the logs in Settings or tap “Reinstall”.");
                 return;
             }
-            showSplash("连接 Web 服务失败，正在重试…");
+            showSplash("Could not connect to the web service. Retrying…");
             // cookie 由 CookieMinter 自签（内部含密钥就绪重试），无需等 token
             handler.postDelayed(() -> {
                 if (!isFinishing()) loadMainUrl(authenticatedUrl());
