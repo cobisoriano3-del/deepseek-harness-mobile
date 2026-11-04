@@ -50,6 +50,7 @@ public class MainActivity extends Activity {
     private int loadAttempts;
     private int port;
     private static final int REQ_FILE_CHOOSER = 42;
+    private static final String GITHUB_REPOSITORY = "cobisoriano3-del/deepseek-harness-mobile";
     private ValueCallback<Uri[]> fileCallback;
 
     @Override
@@ -98,7 +99,7 @@ public class MainActivity extends Activity {
         new Thread(() -> {
             try {
                 java.net.URL url = new java.net.URL(
-                        "https://api.github.com/repos/Ajwyunsx/deepseek-harness-mobile/releases/latest");
+                        "https://api.github.com/repos/" + GITHUB_REPOSITORY + "/releases/latest");
                 java.net.HttpURLConnection c = (java.net.HttpURLConnection) url.openConnection();
                 c.setConnectTimeout(6000);
                 c.setReadTimeout(6000);
@@ -134,7 +135,7 @@ public class MainActivity extends Activity {
                     try {
                         // 固定名资产直链，浏览器下载后用户手动安装
                         startActivity(new android.content.Intent(android.content.Intent.ACTION_VIEW,
-                                android.net.Uri.parse("https://github.com/Ajwyunsx/deepseek-harness-mobile/releases/latest/download/dsh-mobile.apk")));
+                                android.net.Uri.parse("https://github.com/" + GITHUB_REPOSITORY + "/releases/latest/download/dsh-mobile.apk")));
                     } catch (Exception e) {
                         android.widget.Toast.makeText(this, "Could not open the download link.", android.widget.Toast.LENGTH_SHORT).show();
                     }
