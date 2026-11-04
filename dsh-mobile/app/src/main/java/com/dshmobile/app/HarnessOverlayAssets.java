@@ -34,7 +34,7 @@ final class HarnessOverlayAssets {
      */
     static File extract(Context context, File destination) throws IOException {
         if (!destination.isDirectory() && !destination.mkdirs()) {
-            throw new IOException("无法创建覆盖层目录: " + destination);
+            throw new IOException("Could not create overlay directory: " + destination);
         }
         copyTree(context, ASSET_ROOT, destination);
         return destination;
@@ -53,7 +53,7 @@ final class HarnessOverlayAssets {
             if (content == null) return false;
             File parent = target.getParentFile();
             if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
-                throw new IOException("无法创建覆盖层父目录: " + parent);
+                throw new IOException("Could not create overlay parent directory: " + parent);
             }
             try (OutputStream out = Files.newOutputStream(target.toPath())) {
                 out.write(content);
@@ -61,7 +61,7 @@ final class HarnessOverlayAssets {
             return true;
         }
         if (!target.isDirectory() && !target.mkdirs()) {
-            throw new IOException("无法创建覆盖层子目录: " + target);
+            throw new IOException("Could not create overlay subdirectory: " + target);
         }
         boolean copied = false;
         for (String child : children) {
