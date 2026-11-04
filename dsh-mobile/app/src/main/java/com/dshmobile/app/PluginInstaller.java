@@ -43,7 +43,7 @@ public final class PluginInstaller {
 
     public static Result install(Context ctx, String spec) {
         if (spec == null || !SPEC.matcher(spec).matches()) {
-            return new Result(false, "无效的插件包名：" + spec);
+            return new Result(false, "Invalid plugin package name: " + spec);
         }
         try {
             String pnpmErr = ensurePnpm(ctx);
@@ -94,7 +94,7 @@ public final class PluginInstaller {
                 p.destroyForcibly();
             }
             reader.join(1500);
-            return new Result(false, "安装超时（" + (timeoutMs / 60000) + " 分钟）\n" + tail(buf));
+            return new Result(false, "Installation timed out (" + (timeoutMs / 60000) + " 分钟）\n" + tail(buf));
         }
         reader.join(3000);
         int code = p.exitValue();
