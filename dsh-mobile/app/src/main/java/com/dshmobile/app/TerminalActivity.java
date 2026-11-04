@@ -67,19 +67,19 @@ public class TerminalActivity extends Activity {
         int bp = Ui.dp(this, 8);
         bar.setPadding(bp, bp, bp, bp);
         TextView title = new TextView(this);
-        title.setText("容器终端");
+        title.setText("Container terminal");
         title.setTextColor(FG);
         title.setTextSize(16);
         title.setTypeface(Typeface.DEFAULT_BOLD);
         bar.addView(title, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        bar.addView(action("清屏", v -> {
+        bar.addView(action("Clear", v -> {
             synchronized (lock) {
                 buffer.setLength(0);
             }
             output.setText("");
         }));
-        bar.addView(action("重启", v -> startShell()));
+        bar.addView(action("Restart", v -> startShell()));
         root.addView(bar);
         View div = new View(this);
         div.setBackgroundColor(DIVIDER);
@@ -109,7 +109,7 @@ public class TerminalActivity extends Activity {
         input = new EditText(this);
         input.setTextColor(FG);
         input.setHintTextColor(FG_DIM);
-        input.setHint("输入命令，回车执行");
+        input.setHint("Enter a command and press Enter to run");
         input.setTextSize(13);
         input.setTypeface(Typeface.MONOSPACE);
         input.setSingleLine(true);
@@ -121,7 +121,7 @@ public class TerminalActivity extends Activity {
         });
         row.addView(input, new LinearLayout.LayoutParams(
                 0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        row.addView(action("执行", v -> send()));
+        row.addView(action("Run", v -> send()));
         root.addView(row);
 
         setContentView(root);
@@ -153,7 +153,7 @@ public class TerminalActivity extends Activity {
             new Thread(() -> readLoop(p), "dsh-term-read").start();
             append("已连接容器 shell（工作目录 /home/dsh；命令卡死可点「重启」中断）\n");
         } catch (IOException e) {
-            append("启动 shell 失败: " + e.getMessage() + "\n");
+            append("Failed to start shell: " + e.getMessage() + "\n");
         }
     }
 
@@ -198,7 +198,7 @@ public class TerminalActivity extends Activity {
                 out.write((cmd + "\n").getBytes(StandardCharsets.UTF_8));
                 out.flush();
             } catch (IOException e) {
-                handler.post(() -> append("[写入失败: " + e.getMessage() + "]\n"));
+                handler.post(() -> append("[Write failed: " + e.getMessage() + "]\n"));
             }
         }, "dsh-term-write").start();
     }
