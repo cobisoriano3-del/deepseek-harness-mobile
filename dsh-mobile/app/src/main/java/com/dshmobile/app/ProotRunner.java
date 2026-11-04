@@ -126,6 +126,10 @@ public final class ProotRunner {
         cmd.add("HOME=/home/dsh");
         cmd.add("TERM=xterm-256color");
         cmd.add("DEBIAN_FRONTEND=noninteractive");
+        // Keep temporary-file paths inside the container, not the Android host.
+        cmd.add("TMPDIR=/tmp");
+        cmd.add("TMP=/tmp");
+        cmd.add("TEMP=/tmp");
         // 禁用 dsh 命令沙箱：手机 proot 容器里 bwrap（需 unprivileged user
         // namespaces，Android 内核通常禁用）和 Landlock（需内核 5.13+ 且启用
         // 该 LSM）基本都探测失败，workspace-write 下命令会报 SANDBOX_UNAVAILABLE
