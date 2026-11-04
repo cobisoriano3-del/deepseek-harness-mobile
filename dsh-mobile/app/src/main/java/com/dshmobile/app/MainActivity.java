@@ -39,6 +39,8 @@ import java.net.URL;
 public class MainActivity extends Activity {
 
     private WebView webView;
+    private View floatingActions;
+    private volatile boolean mobileDrawerOpen;
     private FrameLayout splash;
     private TextView splashStatus;
     private MobileUiInjector injector;
@@ -215,6 +217,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
                 pageFailed = false;
+                applyMobileDrawerState(false);
                 injector.injectEarlyPolyfill(view);
             }
 
@@ -285,7 +288,8 @@ public class MainActivity extends Activity {
         root.addView(webView, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
 
-        root.addView(buildFabs());
+        floatingActions = buildFabs();
+        root.addView(floatingActions);
 
         splash = buildSplash();
         root.addView(splash, new FrameLayout.LayoutParams(
@@ -299,6 +303,14 @@ public class MainActivity extends Activity {
      * 注意：@JavascriptInterface 方法跑在 WebView 后台线程，UI 操作必须 post 回主线程。
      */
     private final class DshBridge {
+        /** Keep Android-native quick actions out of the WebView drawer overlay. */
+        @android.webkit.JavascriptInterface
+        public void setMobileDrawerOpen(final boolean open) {
+            handler.post(() -> {
+                if (!isFinishing()) applyMobileDrawerState(open);
+            });
+        }
+
         /** 设置弹窗「打开配置文件」：桌面走 xdg-open，容器里没有必失败 → 原生编辑器。 */
         @android.webkit.JavascriptInterface
         public void openConfig() {
@@ -746,8 +758,22 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applyMobileDrawerState(boolean open) {
+        mobileDrawerOpen = open;
+        if (floatingActions != null) {
+            floatingActions.setVisibility(open ? View.GONE : View.VISIBLE);
+        }
+    }
+
     @Override
     public void onBackPressed() {
+        if (mobileDrawerOpen && webView != null) {
+            webView.evaluateJavascript(
+                    "(function(){var close=window.__dshMobileCloseDrawer;"
+                            + "if(typeof close==='function'){close();return true;}return false;})()",
+                    null);
+            return;
+        }
         if (webView != null && webView.canGoBack()) {
             webView.goBack();
         } else {

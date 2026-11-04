@@ -402,6 +402,25 @@ async function scenarioStableAttributeHooks(page) {
     `transcript still clears the composer (overlap ${result.overlap}px)`)
 }
 
+/** The actual sidebar collapse control must close the mobile drawer cleanly. */
+async function scenarioSidebarToggleExit(page) {
+  console.log('\nscenario: close from the sidebar control')
+  await page.click('#dsh-mobile-railbtn')
+  await page.waitForTimeout(500)
+  check(await page.evaluate(() => document.body.classList.contains('dsh-mobile-drawer')),
+    'sidebar drawer opens before using its own close control')
+  await page.click('#sidebar-toggle')
+  await page.waitForTimeout(700)
+  const result = await page.evaluate(() => ({
+    drawer: document.body.classList.contains('dsh-mobile-drawer'),
+    nativeDrawerOpen: window.__nativeDrawerOpen,
+    closeFunction: typeof window.__dshMobileCloseDrawer === 'function',
+  }))
+  check(!result.drawer, 'sidebar collapse control leaves the mobile drawer closed')
+  check(result.nativeDrawerOpen === false, 'native overlay actions return after sidebar collapse')
+  check(result.closeFunction, 'Android Back close handler is exposed by the mobile adapter')
+}
+
 /**
  * Sample the drawer while it closes: the panel transform, the mask opacity, and
  * whether dsh's own collapse has already happened (which reflows the sidebar
@@ -413,10 +432,12 @@ async function scenarioDrawerExit(page, label) {
   await page.waitForTimeout(500)
   const opened = await page.evaluate(() => ({
     drawer: document.body.classList.contains('dsh-mobile-drawer'),
+    nativeDrawerOpen: window.__nativeDrawerOpen,
     panelLeft: Math.round(document.querySelector('div[class*="_sidebarCol"]').getBoundingClientRect().left),
     panelWidth: Math.round(document.querySelector('div[class*="_sidebarCol"]').getBoundingClientRect().width),
   }))
   check(opened.drawer, `drawer opens (panel ${opened.panelWidth}px at x=${opened.panelLeft})`)
+  check(opened.nativeDrawerOpen === true, 'Android overlay actions are hidden while the drawer is open')
   if (shotsDir) await page.screenshot({ path: join(shotsDir, `${label}-open.png`) })
 
   const result = await page.evaluate(async () => {
@@ -461,6 +482,8 @@ async function scenarioDrawerExit(page, label) {
   check(visibleWhileCollapsed.length === 0,
     `sidebar never reflows inside a still-visible panel (${visibleWhileCollapsed.length} sample(s))`)
   const final = samples[samples.length - 1]
+  const nativeDrawerOpen = await page.evaluate(() => window.__nativeDrawerOpen)
+  check(nativeDrawerOpen === false, 'Android overlay actions are restored after the drawer closes')
   check(!final.drawer, 'drawer class is removed after the exit')
   check(final.maskOpacity === 0 || final.maskDisplay === 'none',
     `mask ends hidden (opacity ${final.maskOpacity}, display ${final.maskDisplay})`)
@@ -498,6 +521,12 @@ async function main() {
     const errors = []
     page.on('pageerror', error => errors.push(String(error)))
     await page.setContent(pageHtml(css))
+    await page.evaluate(() => {
+      window.__nativeDrawerOpen = null
+      window.DshNative = {
+        setMobileDrawerOpen(open) { window.__nativeDrawerOpen = open },
+      }
+    })
     await page.addScriptTag({ content: SIDEBAR_TOGGLE_SCRIPT })
     await page.evaluate(() => document.getElementById('sidebar-root').classList.add('_collapsed_test'))
     await page.addScriptTag({ content: inject })
@@ -508,6 +537,7 @@ async function main() {
     await scenarioColdStartHiddenSeat(page)
     await scenarioSeatGrowsWhileResting(page)
     await scenarioStableAttributeHooks(page)
+    await scenarioSidebarToggleExit(page)
     await scenarioDrawerExit(page, 'fixed')
     await scenarioDrawerExit(page, 'second-run')
     check(errors.length === 0, `inject.js raised no page errors${errors.length ? `: ${errors[0]}` : ''}`)
