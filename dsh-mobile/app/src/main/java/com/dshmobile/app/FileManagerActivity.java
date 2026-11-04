@@ -198,7 +198,7 @@ public class FileManagerActivity extends Activity {
         new AlertDialog.Builder(this)
                 .setTitle("Delete")
                 .setMessage("Delete " + containerPath(f)
-                        + (f.isDirectory() ? "(including all contents)" : "") + " ？")
+                        + (f.isDirectory() ? "(including all contents)" : "") + "?")
                 .setPositiveButton("Delete", (d, w) -> {
                     BootstrapInstaller.deleteRecursively(f);
                     refresh();
