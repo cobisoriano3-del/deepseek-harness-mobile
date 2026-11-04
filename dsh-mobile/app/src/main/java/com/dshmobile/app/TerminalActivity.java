@@ -143,7 +143,7 @@ public class TerminalActivity extends Activity {
     private void startShell() {
         stopShell();
         if (!ProotRunner.prootBin(this).isFile() || !ProotRunner.rootfsDir(this).isDirectory()) {
-            append("容器尚未安装，请先完成初始化。\n");
+            append("The container is not installed. Please complete setup first.\n");
             return;
         }
         try {
@@ -151,7 +151,7 @@ public class TerminalActivity extends Activity {
             stdin = shell.getOutputStream();
             Process p = shell;
             new Thread(() -> readLoop(p), "dsh-term-read").start();
-            append("已连接容器 shell（工作目录 /home/dsh；命令卡死可点「重启」中断）\n");
+            append("Connected to the container shell (working directory: /home/dsh; tap “Restart” to stop a stuck command).\n");
         } catch (IOException e) {
             append("Failed to start shell: " + e.getMessage() + "\n");
         }
@@ -178,7 +178,7 @@ public class TerminalActivity extends Activity {
         }
         // 只有当前会话自然退出才提示（被「重启」替换掉的旧会话不刷提示）
         if (p == shell) {
-            append("\n[会话已结束，点「重启」重新连接]\n");
+            append("\n[Session ended. Tap “Restart” to reconnect.]\n");
         }
     }
 
@@ -187,7 +187,7 @@ public class TerminalActivity extends Activity {
         input.setText("");
         OutputStream out = stdin;
         if (shell == null || out == null || !shell.isAlive()) {
-            append("（shell 未连接，点右上角「重启」）\n");
+            append("(Shell disconnected. Tap “Restart” in the top-right corner.)\n");
             return;
         }
         if (!cmd.isEmpty()) {
@@ -208,7 +208,7 @@ public class TerminalActivity extends Activity {
             buffer.append(s);
             if (buffer.length() > MAX_BUFFER) {
                 buffer.delete(0, buffer.length() - KEEP_BUFFER);
-                buffer.insert(0, "…（早期输出已截断）\n");
+                buffer.insert(0, "…(Earlier output truncated)\n");
             }
         }
         scheduleFlush();
