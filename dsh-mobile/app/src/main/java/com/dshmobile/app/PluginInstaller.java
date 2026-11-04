@@ -60,7 +60,7 @@ public final class PluginInstaller {
         File pnpm = new File(ProotRunner.rootfsDir(ctx), "opt/node/bin/pnpm");
         if (pnpm.isFile()) return null;
         Result r = run(ctx, Arrays.asList("corepack", "enable"), 120_000);
-        if (!r.ok) return "pnpm 初始化失败：\n" + r.output;
+        if (!r.ok) return "pnpm initialization failed: \n" + r.output;
         return null;
     }
 
@@ -94,7 +94,7 @@ public final class PluginInstaller {
                 p.destroyForcibly();
             }
             reader.join(1500);
-            return new Result(false, "Installation timed out (" + (timeoutMs / 60000) + " 分钟）\n" + tail(buf));
+            return new Result(false, "Installation timed out (" + (timeoutMs / 60000) + " minutes)\n" + tail(buf));
         }
         reader.join(3000);
         int code = p.exitValue();
