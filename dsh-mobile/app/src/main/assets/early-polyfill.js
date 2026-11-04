@@ -7,6 +7,20 @@
   'use strict';
   if (window.__dshEarlyPolyfill) return;
   window.__dshEarlyPolyfill = true;
+  // Prefer English for the embedded DSH web interface, independent of the phone language.
+  function setEnglishLanguage(target) {
+    try {
+      Object.defineProperty(target, 'language', { configurable: true, get: function () { return 'en-US'; } });
+      Object.defineProperty(target, 'languages', { configurable: true, get: function () { return ['en-US', 'en']; } });
+    } catch (e) {}
+  }
+  if (typeof Navigator !== 'undefined') setEnglishLanguage(Navigator.prototype);
+  if (typeof navigator !== 'undefined') setEnglishLanguage(navigator);
+  if (typeof document !== 'undefined') {
+    var markEnglish = function () { if (document.documentElement) document.documentElement.lang = 'en'; };
+    if (document.documentElement) markEnglish();
+    document.addEventListener('DOMContentLoaded', markEnglish, { once: true });
+  }
   if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.any !== 'function') {
     AbortSignal.any = function (signals) {
       var ctrl = new AbortController();

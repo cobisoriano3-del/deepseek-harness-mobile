@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  *
  * <p>覆盖<b>按版本匹配</b>：安装到的包版本必须与清单记录的版本一致，否则整个包
  * 跳过并在摘要里说明原因（宁可保留上游行为，也不装出一个版本错配的树）。每个文件
- * 写入后重新计算 sha256 与清单核对，因此"覆盖成功"可以被证伪，而不是凭写入成功
+ * 写入后重新计算 sha256 与清单核对，因此"Overlay applied successfully"可以被证伪，而不是凭写入成功
  * 推断。
  *
  * <p>本类只用 {@code java.io}/{@code java.security}，不触碰 Android API，因此可以
@@ -108,19 +108,19 @@ public final class HarnessOverlay {
             for (PackageExpectation plan : manifest.values()) {
                 List<File> targets = installedPackageDirs(rootfsDir, plan.name);
                 if (targets.isEmpty()) {
-                    notes.add(plan.name + ": 容器内未找到该包，跳过");
+                    notes.add(plan.name + ": package not found in the container; skipping");
                     continue;
                 }
                 for (File target : targets) {
                     String where = plan.name + " @ " + relative(rootfsDir, target);
                     String installed = installedVersion(target);
                     if (installed == null) {
-                        notes.add(where + ": 读不到版本，跳过");
+                        notes.add(where + ": could not read package version; skipping");
                         continue;
                     }
                     if (!installed.equals(plan.version)) {
-                        notes.add(where + ": 已安装 " + installed + " ≠ 覆盖层 " + plan.version
-                                + "，跳过（保留上游行为）");
+                        notes.add(where + ": installed version " + installed + " ≠ overlay version " + plan.version
+                                + "; skipping and keeping upstream behavior");
                         continue;
                     }
                     int appliedHere = 0;
@@ -130,7 +130,7 @@ public final class HarnessOverlay {
                                 expectation.path.replace('/', File.separatorChar));
                         File destination = new File(target, expectation.path.replace('/', File.separatorChar));
                         if (!source.isFile()) {
-                            notes.add(where + ": 资产缺失 " + expectation.path);
+                            notes.add(where + ": missing asset " + expectation.path);
                             failed++;
                         } else if (expectation.sha256.equals(sha256(destination))) {
                             current++;
@@ -140,27 +140,27 @@ public final class HarnessOverlay {
                             applied++;
                             appliedHere++;
                         } else {
-                            notes.add(where + ": 覆盖后校验失败 " + expectation.path);
+                            notes.add(where + ": post-overlay verification failed " + expectation.path);
                             failed++;
                         }
                     }
-                    notes.add(where + ": 覆盖 " + appliedHere + " 个文件，已是最新 " + currentHere + " 个");
+                    notes.add(where + ": overlaid " + appliedHere + " files; already up to date " + currentHere + " files");
                 }
             }
             StringBuilder summary = new StringBuilder();
-            summary.append("harness overlay: 覆盖 ").append(applied)
-                    .append(" 个文件，已是最新 ").append(current)
-                    .append("，失败 ").append(failed)
-                    .append("，清单包数 ").append(manifest.size());
+            summary.append("harness overlay: applied ").append(applied)
+                    .append(" files; already up to date ").append(current)
+                    .append(", failed ").append(failed)
+                    .append(", manifest package count ").append(manifest.size());
             for (String note : notes) summary.append("\n  ").append(note);
             return summary.toString();
         } catch (Exception e) {
-            return "harness overlay: 应用失败（保留上游 npm 包）: " + e;
+            return "harness overlay: apply failed (keeping upstream npm package): " + e;
         }
     }
 
     /**
-     * 判断是否需要（重新）应用覆盖层——存在"版本匹配但内容不一致"的文件时为真。
+     * 判断是否需要（重新）应用覆盖层——存在"version matches but contents differ"的文件时为真。
      *
      * <p>服务启动前用它做自愈：用户在容器里重装或升级过 dsh 之后覆盖会失效；内容
      * 一致时不做任何写入，避免每次启动都碰这些文件。
@@ -194,7 +194,7 @@ public final class HarnessOverlay {
      * 会被 {@link #apply} 整包跳过。
      *
      * @param overlayDir 已展开的覆盖层目录
-     * @return 版本号；资产缺失或读不出时返回 null（调用方退回"装 latest"的旧行为）
+     * @return 版本号；资产缺失或读不出时返回 null（调用方退回"install latest"的旧行为）
      */
     public static String targetVersion(File overlayDir) {
         File file = new File(overlayDir, VERSION_NAME);

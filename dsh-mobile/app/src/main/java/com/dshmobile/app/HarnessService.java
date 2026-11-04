@@ -88,7 +88,7 @@ public class HarnessService extends Service {
             }, "dsh-harness-stop").start();
             return START_NOT_STICKY;
         }
-        startForeground(NOTIF_ID, buildNotification("正在启动容器…"));
+        startForeground(NOTIF_ID, buildNotification("Starting container…"));
         acquireWakeLock();
         wantRun = true;
         if (!isRunning()) {
@@ -105,18 +105,18 @@ public class HarnessService extends Service {
             // 启动前自检 node-pty：pty.node 缺失时 dsh web 必崩（plugin tree
             // failed to load），先就地修复再启动，避免无意义的崩溃-重启循环
             if (NodePtyFixer.needsFix(ProotRunner.rootfsDir(this))) {
-                updateNotification("正在修复 node-pty 原生模块…");
+                updateNotification("Repairing the node-pty native module…");
                 boolean fixed = NodePtyFixer.fix(this, log);
                 updateNotification(fixed
-                        ? "node-pty 修复完成，正在启动…"
-                        : "node-pty 修复失败，请到设置查看日志");
+                        ? "node-pty repaired. Starting…"
+                        : "Could not repair node-pty. Check the logs in Settings.");
             }
             // 覆盖层自愈：用户在容器里重装/升级过 dsh 会把本仓库的补丁包冲掉，
             // 内容一致时这里不做任何写入。
             ensureHarnessOverlay(log);
             final int port = prefs.getPort();
             try {
-                updateNotification("DeepSeek Harness 运行中 · 端口 " + port);
+                updateNotification("DeepSeek Harness running · Port " + port);
                 // 先起 Web：容器 SSH 要 apt 装 openssh，网络差时可能耗时数十秒甚至
                 // 失败重试，绝不能挡在 Web 关键路径前（否则界面迟迟进不去）。
                 webAuthUrl = null;
@@ -143,20 +143,20 @@ public class HarnessService extends Service {
                 String broken = brokenPlugin;
                 brokenPlugin = null;
                 if (broken != null && quarantined.add(broken) && quarantinePlugin(broken)) {
-                    updateNotification("插件 " + broken + " 与当前 dsh 不兼容，已临时禁用并重启");
+                    updateNotification("Plugin " + broken + " is incompatible with this DSH version. It was temporarily disabled and the service restarted.");
                     Thread.sleep(1000);
                     continue;
                 }
                 restarts++;
                 if (restarts > MAX_RESTART) {
-                    updateNotification("容器多次退出，已停止（详见日志）");
+                    updateNotification("The container exited repeatedly and was stopped. See the logs for details.");
                     break;
                 }
-                updateNotification("容器退出(" + code + ")，" + 3 + " 秒后重启…");
+                updateNotification("Container exited (" + code + "), " + 3 + " seconds until restart…");
                 Thread.sleep(3000);
             } catch (IOException e) {
                 running = false;
-                updateNotification("启动失败: " + e.getMessage());
+                updateNotification("Startup failed: " + e.getMessage());
                 break;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -273,14 +273,14 @@ public class HarnessService extends Service {
             if (alignAttempted && targetVersion != null
                     && !targetVersion.equals(HarnessOverlay.installedHarnessVersion(rootfs))) {
                 alignAttempted = false;
-                updateNotification("正在对齐容器内 dsh 到 " + targetVersion + "…");
+                updateNotification("Updating the container's DSH version to " + targetVersion + "…");
                 BootstrapInstaller.alignHarnessVersion(this, targetVersion, logFile);
             }
             if (!HarnessOverlay.needsApply(rootfs, overlayDir)) return;
-            updateNotification("正在应用本仓库补丁包…");
+            updateNotification("Applying the bundled project patches…");
             appendServiceLog(logFile, HarnessOverlay.apply(rootfs, overlayDir));
         } catch (Exception e) {
-            appendServiceLog(logFile, "harness 覆盖层自愈失败（继续使用上游 npm 包）: " + e);
+            appendServiceLog(logFile, "Harness overlay recovery failed (continuing with the upstream npm package): " + e);
         }
     }
 
@@ -315,12 +315,12 @@ public class HarnessService extends Service {
         try {
             sshdProcess = ProotRunner.startSshd(this, prefs.getSshPort(), log);
         } catch (IOException e) {
-            updateNotification("SSH 启动失败: " + e.getMessage());
+            updateNotification("SSH startup failed: " + e.getMessage());
         }
     }
 
     private void stopContainer() {
-        // 状态先置 false：设置页/按钮立即反映"已停止"，
+        // 状态先置 false：设置页/按钮立即反映"Stopped"，
         // 不必等强杀兜底（最长 3s）走完
         running = false;
         webAuthUrl = null;
@@ -365,9 +365,9 @@ public class HarnessService extends Service {
 
     private void createChannel() {
         NotificationManager nm = getSystemService(NotificationManager.class);
-        NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "Harness 服务",
+        NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "Harness service",
                 NotificationManager.IMPORTANCE_LOW);
-        ch.setDescription("DeepSeek Harness 容器运行状态");
+        ch.setDescription("DeepSeek Harness container status");
         nm.createNotificationChannel(ch);
     }
 
@@ -386,7 +386,7 @@ public class HarnessService extends Service {
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_download_done)
                 .setContentIntent(pi)
-                .addAction(new Notification.Action.Builder(null, "停止", stopPi).build())
+                .addAction(new Notification.Action.Builder(null, "Stop", stopPi).build())
                 .setOngoing(true)
                 .build();
     }
