@@ -216,13 +216,9 @@
     }
     // 退出动画期间派生类由 closeSidebar 掌管，观察器不要抢先撤掉（否则面板瞬消失）
     if (closing) return;
-    var col = document.querySelector('div[class*="_sidebarCol"]');
-    var open = false;
-    if (col) {
-      // 收起态 sidebarCol 被我们的 CSS display:none（宽度 0），不能看宽度；
-      // dsh 收起时内层根节点带 _collapsed 类，以此为准。
-      open = !col.querySelector(':scope > [class*="_collapsed"]');
-    }
+    // Prefer the upstream toggle's accessible state; fall back to its root class
+    // for builds that do not expose the sidebar label.
+    var open = sidebarIsOpen();
     var wasOpen = document.body.classList.contains('dsh-mobile-drawer');
     document.body.classList.toggle('dsh-mobile-drawer', open);
     syncNativeDrawer(open);
