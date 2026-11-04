@@ -60,7 +60,7 @@ public final class PluginInstaller {
         File pnpm = new File(ProotRunner.rootfsDir(ctx), "opt/node/bin/pnpm");
         if (pnpm.isFile()) return null;
         Result r = run(ctx, Arrays.asList("corepack", "enable"), 120_000);
-        if (!r.ok) return "pnpm initialization failed: \n" + r.output;
+        if (!r.ok) return "pnpm initialization failed:\n" + r.output;
         return null;
     }
 
