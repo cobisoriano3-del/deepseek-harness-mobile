@@ -139,7 +139,7 @@ public class SettingsActivity extends Activity {
                         + prefs.getSshPort() + " tcp:" + prefs.getSshPort(),
                 null);
         sshCard.addView(Ui.divider(this));
-        addRow(sshCard, "Username / password", "dsh / " + prefs.getSshPassword() + "(tap to copy password)", v -> {
+        addRow(sshCard, "Username / password", "dsh / " + prefs.getSshPassword() + " (tap to copy password)", v -> {
             android.content.ClipboardManager cm =
                     (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             cm.setPrimaryClip(android.content.ClipData.newPlainText("ssh", prefs.getSshPassword()));
