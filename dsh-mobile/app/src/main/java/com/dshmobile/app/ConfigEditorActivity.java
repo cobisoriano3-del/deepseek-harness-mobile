@@ -99,7 +99,7 @@ public class ConfigEditorActivity extends Activity {
     private void loadFile() {
         if (!configFile.isFile()) {
             // 文件不存在时给一份带注释的空文档（dsh 的 prepareDocument 也是给空文件）
-            editor.setText("# dsh settings\n# 命名空间配置项见设置弹窗；保存后 dsh 自动热加载。\n");
+            editor.setText("# dsh settings\n# See the Settings dialog for namespace options. Changes are hot-reloaded automatically.\n");
             status.setText("The file does not exist yet. It will be created when you save.");
             return;
         }
