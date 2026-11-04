@@ -70,8 +70,21 @@
   // （dsh 更新或语言切换后 aria-label 可能变，类名更稳）。
   function findSidebarToggle() {
     return document.querySelector('div[class*="_sidebarCol"] button[class*="_toggle"]') ||
-      document.querySelector('div[class*="_sidebarCol"] button[aria-label*="sidebar" i]') ||
-      document.querySelector('div[class*="_sidebarCol"] button[class*="_iconButton"]');
+      document.querySelector('div[class*="_sidebarCol"] button[aria-label*="sidebar" i]');
+  }
+
+  // Native Android controls sit above the WebView, outside its CSS backdrop.
+  var lastNativeDrawerOpen = null;
+  function syncNativeDrawer(open) {
+    if (lastNativeDrawerOpen === open) return;
+    lastNativeDrawerOpen = open;
+    if (window.DshNative && typeof window.DshNative.setMobileDrawerOpen === 'function') {
+      try {
+        window.DshNative.setMobileDrawerOpen(open);
+      } catch (e) {
+        lastNativeDrawerOpen = null;
+      }
+    }
   }
 
   // dsh 侧栏的真实内部状态（收起时内层根节点带 _collapsed 类）。
@@ -81,6 +94,10 @@
   function sidebarIsOpen() {
     var col = document.querySelector('div[class*="_sidebarCol"]');
     if (!col) return false;
+    var toggle = findSidebarToggle();
+    var label = toggle ? (toggle.getAttribute('aria-label') || '') : '';
+    if (/\b(?:open|expand)\s+sidebar\b/i.test(label)) return false;
+    if (/\b(?:collapse|close)\s+sidebar\b/i.test(label)) return true;
     return !col.querySelector(':scope > [class*="_collapsed"]');
   }
   // 用户意图时间戳：主动打开（lastOpenIntent）取消正在进行的强制收起，
@@ -145,6 +162,9 @@
     // 兜底：过渡被取消 / 浏览器根本没发事件时，按动画时长自己收尾。
     setTimeout(settle, DRAWER_ANIM_MS + 120);
   }
+  // Android system Back closes the drawer through the same animated close path.
+  window.__dshMobileCloseDrawer = closeSidebar;
+
   // 在时间窗内持续强制收起：dsh 导航后会按持久化状态把侧栏重新展开，
   // 且展开可能发生在导航结束后 1~2 秒（真机更慢），点一次 toggle 可能白收。
   // 窗内每 400ms 检查一次，只在确认展开态时才点 toggle（绝不盲翻）。
@@ -189,20 +209,20 @@
   }
   function updateSidebarDrawer() {
     if (window.innerWidth > 700) {
-      document.body.classList.remove('dsh-mobile-drawer');
+      document.body.classList.remove('dsh-mobile-drawer', 'dsh-mobile-drawer-preopen', 'dsh-mobile-drawer-closing');
+      closing = false;
+      syncNativeDrawer(false);
       return;
     }
     // 退出动画期间派生类由 closeSidebar 掌管，观察器不要抢先撤掉（否则面板瞬消失）
     if (closing) return;
+    // Keep the drawer mounted until the upstream 150ms collapse fade has settled.
+    // The accessible label changes before the root receives its collapsed class.
     var col = document.querySelector('div[class*="_sidebarCol"]');
-    var open = false;
-    if (col) {
-      // 收起态 sidebarCol 被我们的 CSS display:none（宽度 0），不能看宽度；
-      // dsh 收起时内层根节点带 _collapsed 类，以此为准。
-      open = !col.querySelector(':scope > [class*="_collapsed"]');
-    }
+    var open = !!col && !col.querySelector(':scope > [class*="_collapsed"]');
     var wasOpen = document.body.classList.contains('dsh-mobile-drawer');
     document.body.classList.toggle('dsh-mobile-drawer', open);
+    syncNativeDrawer(open);
     if (open) {
       ensureMask();
       // 滑入：同一帧带上"屏幕外"初态（此时该元素还没有过渡起点，不会先闪一下），
