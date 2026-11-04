@@ -120,8 +120,13 @@ const SIDEBAR_TOGGLE_SCRIPT = `
   document.getElementById('sidebar-toggle').addEventListener('click', function () {
     window.__toggleClicks.push(performance.now());
     var root = document.getElementById('sidebar-root');
-    var collapsed = root.classList.toggle('_collapsed_test');
+    var collapsed = !root.classList.contains('_collapsed_test');
     this.setAttribute('aria-label', collapsed ? 'Open sidebar' : 'Collapse sidebar');
+    // Mirror SidebarRoot: its label changes immediately, but the rail class
+    // is applied only after the 150ms content fade completes.
+    window.setTimeout(function () {
+      root.classList.toggle('_collapsed_test', collapsed);
+    }, 150);
   });
 `
 
@@ -411,7 +416,10 @@ async function scenarioSidebarToggleExit(page) {
   check(await page.evaluate(() => document.body.classList.contains('dsh-mobile-drawer')),
     'sidebar drawer opens before using its own close control')
   await page.click('#sidebar-toggle')
-  await page.waitForTimeout(700)
+  await page.waitForTimeout(80)
+  check(await page.evaluate(() => document.body.classList.contains('dsh-mobile-drawer')),
+    'drawer remains mounted while the upstream collapse fade is running')
+  await page.waitForTimeout(620)
   const result = await page.evaluate(() => ({
     drawer: document.body.classList.contains('dsh-mobile-drawer'),
     nativeDrawerOpen: window.__nativeDrawerOpen,

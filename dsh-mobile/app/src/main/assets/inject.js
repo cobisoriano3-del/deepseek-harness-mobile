@@ -216,9 +216,10 @@
     }
     // 退出动画期间派生类由 closeSidebar 掌管，观察器不要抢先撤掉（否则面板瞬消失）
     if (closing) return;
-    // Prefer the upstream toggle's accessible state; fall back to its root class
-    // for builds that do not expose the sidebar label.
-    var open = sidebarIsOpen();
+    // Keep the drawer mounted until the upstream 150ms collapse fade has settled.
+    // The accessible label changes before the root receives its collapsed class.
+    var col = document.querySelector('div[class*="_sidebarCol"]');
+    var open = !!col && !col.querySelector(':scope > [class*="_collapsed"]');
     var wasOpen = document.body.classList.contains('dsh-mobile-drawer');
     document.body.classList.toggle('dsh-mobile-drawer', open);
     syncNativeDrawer(open);
