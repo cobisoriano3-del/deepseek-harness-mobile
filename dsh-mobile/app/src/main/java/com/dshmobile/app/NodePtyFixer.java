@@ -9,7 +9,7 @@ import java.util.Arrays;
  * node-pty 原生模块（pty.node）自检与修复。
  *
  * npm 安装 dsh 时 node-pty 需 node-gyp 现场编译，编译失败（头文件下载被墙、
- * npm 以 root 运行降权等）会被当 optional 依赖静默跳过、安装"成功"，
+ * npm 以 root 运行降权等）会被当 optional 依赖静默跳过、安装"Success"，
  * 但 dsh web 启动即崩（subprocess 插件加载 pty.node 失败）。
  * 安装流程与前台服务启动前都调用本类兜底。
  */
