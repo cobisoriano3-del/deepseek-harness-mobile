@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
         if (body.length() > 500) body = body.substring(0, 500) + "…";
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Update available: " + tag)
-                .setMessage(body.isEmpty() ? "Current version: v" + currentVersion() + ". Update to " + tag + "。" : body)
+                .setMessage(body.isEmpty() ? "Current version: v" + currentVersion() + ". Update to " + tag + "." : body)
                 .setPositiveButton("Update now", (d, w) -> {
                     try {
                         // 固定名资产直链，浏览器下载后用户手动安装
