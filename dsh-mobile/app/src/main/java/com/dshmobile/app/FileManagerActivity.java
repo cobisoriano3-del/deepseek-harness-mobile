@@ -216,7 +216,7 @@ public class FileManagerActivity extends Activity {
             Toast.makeText(this, "Exported to " + dest.getAbsolutePath(), Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             Toast.makeText(this, "Export failed: " + e.getMessage()
-                    + "\n可到设置开启「所有文件访问权限」后重试", Toast.LENGTH_LONG).show();
+                    + "\nEnable “All files access” in Settings and try again.", Toast.LENGTH_LONG).show();
         }
     }
 
