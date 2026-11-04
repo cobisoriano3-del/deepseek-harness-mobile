@@ -47,7 +47,7 @@ public class ConfigEditorActivity extends Activity {
         root.setPadding(pad, pad, pad, pad);
         root.setBackgroundColor(Ui.bg(this));
 
-        TextView title = Ui.title(this, "配置文件");
+        TextView title = Ui.title(this, "Configuration file");
         root.addView(title);
 
         TextView path = Ui.hint(this, configFile.getAbsolutePath());
@@ -81,10 +81,10 @@ public class ConfigEditorActivity extends Activity {
         btns.setGravity(Gravity.END);
         LinearLayout.LayoutParams blp = Ui.matchWrap();
         blp.topMargin = Ui.dp(this, 8);
-        Button cancel = Ui.outlineButton(this, "返回");
+        Button cancel = Ui.outlineButton(this, "Back");
         cancel.setOnClickListener(v -> finish());
         btns.addView(cancel);
-        Button save = Ui.primaryButton(this, "保存");
+        Button save = Ui.primaryButton(this, "Save");
         LinearLayout.LayoutParams s2 = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, Ui.dp(this, 48));
         s2.leftMargin = Ui.dp(this, 16);
@@ -100,7 +100,7 @@ public class ConfigEditorActivity extends Activity {
         if (!configFile.isFile()) {
             // 文件不存在时给一份带注释的空文档（dsh 的 prepareDocument 也是给空文件）
             editor.setText("# dsh settings\n# 命名空间配置项见设置弹窗；保存后 dsh 自动热加载。\n");
-            status.setText("文件尚不存在，保存时创建");
+            status.setText("The file does not exist yet. It will be created when you save.");
             return;
         }
         try {
@@ -110,7 +110,7 @@ public class ConfigEditorActivity extends Activity {
             in.close();
             editor.setText(new String(buf, 0, Math.max(n, 0), StandardCharsets.UTF_8));
         } catch (IOException e) {
-            status.setText("读取失败：" + e.getMessage());
+            status.setText("Read failed: " + e.getMessage());
         }
     }
 
@@ -127,10 +127,10 @@ public class ConfigEditorActivity extends Activity {
             if (!tmp.renameTo(configFile)) {
                 throw new IOException("rename failed");
             }
-            status.setText("已保存（dsh 自动热加载，无需重启）");
-            Toast.makeText(this, "配置已保存", Toast.LENGTH_SHORT).show();
+            status.setText("Saved. DSH will reload the changes automatically; no restart is needed.");
+            Toast.makeText(this, "Configuration saved.", Toast.LENGTH_SHORT).show();
         } catch (IOException e) {
-            status.setText("保存失败：" + e.getMessage());
+            status.setText("Save failed: " + e.getMessage());
         }
     }
 }
